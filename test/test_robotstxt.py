@@ -34,24 +34,26 @@ except ImportError:
 from requests import Session
 from requests_robotstxt import RobotsAwareSession, RobotsTxtDisallowed
 
+baseline = Session()
 
 class TestRobotsAwareSession(unittest.TestCase):
+
     def setUp(self):
-        self.baseline = Session()
         self.aware = RobotsAwareSession()
 
+    @unittest.skipUnless(baseline.get('http://www.robotstxt.org/').status_code == 200,
+        "Could not connect to test site.")
     def testRobotAllowed(self):
-        self.skipUnless(self.baseline.get('http://www.robotstxt.org/').status_code == 200,
-                "Could not connect to test site.")
-        self.assertEqual(self.aware.get('http://www.robotstxt.org/'), 200)
+        self.assertEqual(self.aware.get('http://www.robotstxt.org/').status_code, 200)
         self.assertIn('http://www.robotstxt.org/robots.txt', self.aware.registry)
 
+
+    @unittest.skipUnless(baseline.get('https://www.github.com/').status_code == 200,
+        "Could not connect to test site.")
     def testRobotDisallowed(self):
-        self.skipUnless(self.baseline.get('https://www.github.com/').status_code == 200,
-                "Could not connect to test site.")
         with self.assertRaises(RobotsTxtDisallowed):
-            self.aware.get('https://www.github.com/')
-        self.assertIn('http://www.robotstxt.org/robots.txt', self.aware.registry)
+            self.aware.get('https://github.com/')
+        self.assertIn('https://github.com/robots.txt', self.aware.registry)
 
 
 if __name__ == '__main__':
