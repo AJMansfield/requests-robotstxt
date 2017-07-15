@@ -59,6 +59,8 @@ setup (
         'robotexclusionrulesparser',
         'six',
     ],
+    test_suite = 'test',
+    tests_require = [],
 
     classifiers = [
         'Development Status :: 3 - Alpha',
