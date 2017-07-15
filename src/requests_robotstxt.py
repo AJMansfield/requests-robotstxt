@@ -98,6 +98,10 @@ class RobotsAwareSession(requests.Session):
         
         try:
             rerp = self.registry[robots_url]
+
+            if rerp.is_expired:
+                raise KeyError("key is expired")
+
         except KeyError:
             r = self._intermediate_send(
                 'GET', robots_url, timeout=timeout, proxies=proxies,
