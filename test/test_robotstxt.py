@@ -31,21 +31,27 @@ try:
 except ImportError:
     import unittest
 
-
+from requests import Session
 from requests_robotstxt import RobotsAwareSession, RobotsTxtDisallowed
 
 
 class TestRobotsAwareSession(unittest.TestCase):
     def setUp(self):
-        pass
+        self.baseline = Session()
+        self.aware = RobotsAwareSession()
 
-    def testPyPI(self):
-        s = RobotsAwareSession()
-        self.assertEqual(len(s.registry), 0)
-        self.assertEqual(s.get('https://pypi.python.org/').status_code, 200)
-        self.assertIn('https://pypi.python.org/robots.txt', s.registry)
+    def testRobotAllowed(self):
+        self.skipUnless(self.baseline.get('http://www.robotstxt.org/').status_code == 200,
+                "Could not connect to test site.")
+        self.assertEqual(self.aware.get('http://www.robotstxt.org/'), 200)
+        self.assertIn('http://www.robotstxt.org/robots.txt', self.aware.registry)
+
+    def testRobotDisallowed(self):
+        self.skipUnless(self.baseline.get('https://www.github.com/').status_code == 200,
+                "Could not connect to test site.")
         with self.assertRaises(RobotsTxtDisallowed):
-            s.get('https://github.com/')
+            self.aware.get('https://www.github.com/')
+        self.assertIn('http://www.robotstxt.org/robots.txt', self.aware.registry)
 
 
 if __name__ == '__main__':
